@@ -1,81 +1,73 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import {ref, computed} from "vue";
+
+const header = ref("Shopping List App");
+const editing = ref(false);
+const items = ref([
+  {id: 1, label: "10 party hats", purchased: true, highPriority: true},
+  {id: 2, label: "2 board games", purchased: true, highPriority: false},
+  {id: 3, label: "20 cups", purchased: false, highPriority: true},
+]);
+const reversedItems = computed(()=>  [...items.value].reverse());
+const newItem = ref("");
+const newItemHighPriority = ref(false);
+const saveItem = () => {
+  items.value.push({
+    id: items.value.length + 1 ,
+    label: newItem.value,
+    highPriority: newItemHighPriority.value
+  });
+
+  newItem.value = "";
+  newItemHighPriority.value = false;
+}
+const doEdit = (e) => {
+  editing.value = e;
+  newItem.value = "";
+  newItemHighPriority.value = false;
+}
+const togglePurchased = (item) => {
+  item.purchased = !item.purchased;
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <div class="header" >
+    <h1>{{ header }}</h1>
+    <button v-if="editing" @click="doEdit(false)" class="btn" >Cancel</button>
+    <button v-else @click="doEdit(true)" class="btn btn-primary" >Add Item</button>
+  </div>
+  <form
+      class="add-item-form"
+      v-if="editing"
+      @submit.prevent="saveItem" >
+    <input
+        v-model.trim="newItem"
+        type="text"
+        placeholder="Add an item"
+    >
+    Priority:
+    <label>
+      <input v-model="newItemHighPriority" type="checkbox" >High Priority
+    </label>
+    <button
+        class="btn btn-primary"
+        :disabled="newItem.length < 5"
+      >Save Item</button>
+  </form>
+  <ul>
+    <li
+        v-for="(item, index) in reversedItems"
+        :key="item.id"
+        :class="{strikeout: item.purchased, priority: item.highPriority}"
+        @click="togglePurchased(item)"
+    >{{ item.label }}</li>
+  </ul>
+  <p v-if="!items.length" >
+    Nothing to see here
+  </p>
 </template>
 
 <style>
-@import './assets/base.css';
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-
-  font-weight: normal;
-}
-
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
-
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-}
+@import 'assets/main.css';
 </style>
